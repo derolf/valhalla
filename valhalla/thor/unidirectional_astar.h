@@ -106,7 +106,7 @@ protected:
    */
   bool Expand(baldr::GraphReader& graphreader,
               const baldr::GraphId& node,
-              sif::BDEdgeLabel& pred,
+              sif::EdgeLabel& pred,
               const uint32_t pred_idx,
               const baldr::DirectedEdge* opp_pred_edge,
               const baldr::TimeInfo& time_info,
@@ -115,7 +115,7 @@ protected:
 
   // Private helper function for `ExpandReverse`
   inline bool ExpandInner(baldr::GraphReader& graphreader,
-                          const sif::BDEdgeLabel& pred,
+                          const sif::EdgeLabel& pred,
                           const baldr::DirectedEdge* opp_pred_edge,
                           const baldr::NodeInfo* nodeinfo,
                           const uint32_t pred_idx,
@@ -180,19 +180,19 @@ protected:
   std::shared_ptr<sif::DynamicCost> costing_;
 
   // Vector of edge labels (requires access by index).
-  std::vector<sif::BDEdgeLabel> edgelabels_;
+  std::vector<sif::EdgeLabel> edgelabels_;
 
   // Edge status. Mark edges that are in adjacency list or settled.
   EdgeStatus edgestatus_;
 
-  // Destinations, id and percent used along the edge
-  std::unordered_map<uint64_t, float> destinations_percent_along_;
+  // Mark if edge is a destination
+  std::unordered_set<uint64_t> destinations_;
 
   // Access mode used by the costing method
   uint32_t access_mode_;
 
   // Adjacency list - approximate double bucket sort
-  baldr::DoubleBucketQueue<sif::BDEdgeLabel> adjacencylist_;
+  baldr::DoubleBucketQueue<sif::EdgeLabel> adjacencylist_;
 };
 
 /**

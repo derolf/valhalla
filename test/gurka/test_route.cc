@@ -932,22 +932,24 @@ TEST(AlgorithmTestDest, TestAlgoMultiOriginDestination) {
   gurka::map map = gurka::buildtiles(layout, ways, {}, {}, "test/data/algo_multi_o_d");
 
   auto check = [&](const char* from, const char* to, const std::vector<std::string>& expected_names) {
-    const std::string& request =
-        (boost::format(
-             R"({"locations":[{"lat":%s,"lon":%s,"radius":%s,"node_snap_tolerance":0},{"lat":%s,"lon":%s,"radius":%s,"node_snap_tolerance":0}],"costing":"auto","date_time":{"type":1,"value":"2111-11-11T11:11"}})") %
-         std::to_string(map.nodes.at(from).lat()) % std::to_string(map.nodes.at(from).lng()) %
-         std::to_string(radius) % std::to_string(map.nodes.at(to).lat()) %
-         std::to_string(map.nodes.at(to).lng()) % std::to_string(radius))
-            .str();
+    for (int type = 1; type <= 2; type++) {
+      const std::string& request =
+          (boost::format(
+               R"({"locations":[{"lat":%s,"lon":%s,"radius":%s,"node_snap_tolerance":0},{"lat":%s,"lon":%s,"radius":%s,"node_snap_tolerance":0}],"costing":"auto","date_time":{"type":%s,"value":"2111-11-11T11:11"}})") %
+           std::to_string(map.nodes.at(from).lat()) % std::to_string(map.nodes.at(from).lng()) %
+           std::to_string(radius) % std::to_string(map.nodes.at(to).lat()) %
+           std::to_string(map.nodes.at(to).lng()) % std::to_string(radius) % std::to_string(type))
+              .str();
 
-    // printf("%s %s\n", from, to);
-    auto result = gurka::do_action(valhalla::Options::route, map, request);
+      auto result = gurka::do_action(valhalla::Options::route, map, request);
 
-    EXPECT_EQ(result.trip().routes(0).legs(0).algorithms(0), "time_dependent_forward_a*");
-    EXPECT_EQ(result.options().locations(0).correlation().edges().size(), 6);
-    EXPECT_EQ(result.options().locations(1).correlation().edges().size(), 6);
+      EXPECT_EQ(result.trip().routes(0).legs(0).algorithms(0),
+                type == 1 ? "time_dependent_forward_a*" : "time_dependent_reverse_a*");
+      EXPECT_EQ(result.options().locations(0).correlation().edges().size(), 6);
+      EXPECT_EQ(result.options().locations(1).correlation().edges().size(), 6);
 
-    gurka::assert::raw::expect_path(result, expected_names);
+      gurka::assert::raw::expect_path(result, expected_names);
+    }
   };
 
   check("1", "1", {"AB"});
